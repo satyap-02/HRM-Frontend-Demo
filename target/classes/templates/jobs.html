@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Jobs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #search-box {
+            width: 300px;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jobs Table</h1>
+
+    <!-- 🔍 Search Box -->
+    <input type="text" id="search-box" placeholder="Search by Job ID or Job Title...">
+
+    <table id="jobs-table">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Job Title</th>
+                <th>Min Salary</th>
+                <th>Max Salary</th>
+            </tr>
+        </thead>
+        <tbody id="job-table-body"></tbody>
+    </table>
+
+    
+	<script th:inline="javascript">
+	    let apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+	    let allJobs = []; // store fetched data for filtering
+	
+	    // ✅ Fetch jobs from backend
+	    fetch(`${apiBaseUrl}/api/jobs`)
+    
+            .then(res => res.json())
+            .then(data => {
+                allJobs = data;
+                renderTable(allJobs);
+            })
+            .catch(err => {
+                console.error('Error loading jobs:', err);
+                document.getElementById('job-table-body').innerHTML =
+                    '<tr><td colspan="4" style="text-align:center;color:red;">Error loading jobs data.</td></tr>';
+            });
+
+        // ✅ Render table function
+        function renderTable(jobs) {
+            const tbody = document.getElementById('job-table-body');
+            tbody.innerHTML = '';
+            if (!jobs || jobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No job records found.</td></tr>';
+                return;
+            }
+            jobs.forEach(job => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${job.jobId}</td>
+                    <td>${job.jobTitle}</td>
+                    <td>${job.minSalary || 'N/A'}</td>
+                    <td>${job.maxSalary || 'N/A'}</td>
+                `;
+                row.onclick = () => {
+                    window.location.href = '/vishnu/employees-vishnu?jobId=' + job.jobId;
+                };
+                tbody.appendChild(row);
+            });
+        }
+
+        // ✅ Search filter (runs while typing)
+        document.getElementById('search-box').addEventListener('input', (event) => {
+            const searchValue = event.target.value.toLowerCase();
+            const filteredJobs = allJobs.filter(job =>
+                job.jobId.toLowerCase().includes(searchValue) ||
+                job.jobTitle.toLowerCase().includes(searchValue)
+            );
+            renderTable(filteredJobs);
+        });
+    </script>
+</body>
+</html>

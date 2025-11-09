@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employees</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #f4f4f4; color: #333; }
+        tr:hover { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Employees</h1>
+    <table id="employee-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Job Title</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const deptId = params.get('deptId');
+        const apiBaseUrl = 'http://localhost:8080';
+
+        if (deptId) {
+            fetch(`${apiBaseUrl}/akhila/employees?deptId=${deptId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#employee-table tbody');
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3">No employees found for this department.</td></tr>';
+                    } else {
+                        data.forEach(emp => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${emp.id}</td>
+                                <td>${emp.firstName || ''} ${emp.lastName || ''}</td>
+                                <td>${emp.jobTitle || 'N/A'}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading employees:', error);
+                    document.querySelector('#employee-table tbody').innerHTML =
+                        '<tr><td colspan="3">Error loading employees.</td></tr>';
+                });
+        } else {
+            document.querySelector('#employee-table tbody').innerHTML =
+                '<tr><td colspan="3">No department selected!</td></tr>';
+        }
+    </script>
+</body>

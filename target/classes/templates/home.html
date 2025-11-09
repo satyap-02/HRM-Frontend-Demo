@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>HRMS Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0f7ff, #f1e9ff, #fff6f9);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 0;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #007bff, #00c2ff, #a25eff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    p.subtitle {
+      color: #6c757d;
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+    }
+
+    .team-container {
+	  display: grid;
+	  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	  gap: 35px;
+	  justify-content: center;     /* ✅ Center-aligns items across rows */
+	  align-content: start;        /* Keeps rows aligned to top */
+	  justify-items: center;       /* Centers each card within its grid cell */
+	  width: 90%;
+	  max-width: 1100px;
+	  margin: 0 auto;
+	  padding-bottom: 40px;
+}
+
+    .member-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.7), rgba(240,240,255,0.5));
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 25px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 25px 15px;
+      width: 220px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .member-card:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(0, 150, 255, 0.3);
+      background: linear-gradient(145deg, rgba(240,255,255,0.9), rgba(220,240,255,0.7));
+    }
+
+    .image-wrapper {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 12px;
+    }
+
+    .image-wrapper img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.7);
+      object-fit: cover;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .member-card:hover img {
+      transform: scale(1.1);
+      border-color: #00bfff;
+      box-shadow: 0 8px 25px rgba(0,200,255,0.4);
+    }
+
+    .member-name {
+      color: #004b8d;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-shadow: 0 0 10px rgba(255,255,255,0.6);
+      transition: color 0.3s ease;
+    }
+
+    .member-card:hover .member-name {
+      color: #007bff;
+    }
+
+    @media (max-width: 768px) {
+      .team-container {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 25px;
+      }
+      .member-card {
+        width: 180px;
+        padding: 20px 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container text-center">
+    <h1>HRMS</h1>
+    <p class="subtitle">Welcome!</p>
+
+    <div class="team-container">
+
+      <!-- Anubhaw -->
+      <div class="member-card">
+        <a th:href="@{/employees-anubhaw}" href="/employees-anubhaw">
+          <div class="image-wrapper">
+            <img th:src="@{/images/anu-bhauji.jpg}" src="/images/anu-bhauji.jpg" alt="Anubhaw">
+          </div>
+          <span class="member-name">Anubhaw</span>
+        </a>
+      </div>
+
+		
+		<!-- Akhila -->
+      <div class="member-card">
+        <a href="/akhila/departments">
+          <div class="image-wrapper">
+            <img src="/images/akhila.jpg" alt="Akhila">
+          </div>
+          <span class="member-name">Akhila</span>
+        </a>
+      </div>
+      
+      <!-- Jaheer -->
+      <div class="member-card">
+        <a href="/jaheer/employees">
+          <div class="image-wrapper">
+            <img src="/images/jaheer.jpg" alt="Jaheer">
+          </div>
+          <span class="member-name">Jaheer</span>
+        </a>
+      </div>
+
+      <div class="member-card">
+        <a th:href="@{/locations}" href="/locations">
+          <div class="image-wrapper">
+            <img th:src="@{/images/satya.jpg}" src="/images/satya.jpg" alt="Satya">
+          </div>
+          <span class="member-name">Satya</span>
+        </a>
+      </div>
+      
+      <!-- Swathi -->
+	      <div class="member-card">
+	  <a href="/swathi/countries-cities">
+	    <div class="image-wrapper">
+	      <img src="/images/swathi.jpg" alt="Swathi">
+	    </div>
+	    <span class="member-name">Swathi</span>
+	  </a>
+	</div>
+
+      <!-- Vignesh -->
+      <div class="member-card">
+        <a href="/regions-vighnesh">
+          <div class="image-wrapper">
+            <img src="/images/vignesh.jpg" alt="Vignesh">
+          </div>
+          <span class="member-name">Vignesh</span>
+        </a>
+      </div>
+
+      <!-- Vishnu -->
+      <div class="member-card">
+        <a href="/vishnu/jobs">
+          <div class="image-wrapper">
+            <img src="/images/vishnu.jpg" alt="Vishnu">
+          </div>
+          <span class="member-name">Vishnu</span>
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</body>
+</html>

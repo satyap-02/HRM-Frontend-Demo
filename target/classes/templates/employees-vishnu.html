@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employees (Vishnu)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fafafa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .back-btn {
+            display: inline-block;
+            margin: 15px 0;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+        #search-box {
+            display: block;
+            margin: 15px auto;
+            width: 300px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 95%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Employees for Job ID: <span id="job-id"></span></h1>
+
+    <div style="text-align:center;">
+        <a href="/vishnu/jobs" class="back-btn">← Back to Jobs</a>
+    </div>
+
+    <!-- 🔍 Search Box -->
+    <input type="text" id="search-box" placeholder="Search employees...">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Department</th>
+                <th>Location Name</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody id="employee-table-body">
+            <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <script th:inline="javascript">
+        let apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get('jobId');
+        document.getElementById('job-id').innerText = jobId || 'N/A';
+        const tbody = document.getElementById('employee-table-body');
+        let allEmployees = []; // store data for filtering
+
+        if (jobId) {
+            fetch(`${apiBaseUrl}/api/jobs/${jobId}/employees`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    allEmployees = data;
+                    renderTable(allEmployees);
+                })
+                .catch(error => {
+                    console.error('Error fetching employees:', error);
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;">
+                        Error loading employees data.
+                    </td></tr>`;
+                });
+        }
+
+        function renderTable(employees) {
+            tbody.innerHTML = '';
+            if (!employees || employees.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No employees found.</td></tr>';
+                return;
+            }
+            employees.forEach(emp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${emp.employeeId || '-'}</td>
+                    <td>${(emp.firstName || '') + ' ' + (emp.lastName || '')}</td>
+                    <td>${emp.email || 'N/A'}</td>
+                    <td>${emp.phoneNumber || 'N/A'}</td>
+                    <td>${emp.department?.departmentName || 'N/A'}</td>
+                    <td>${emp.department?.location?.city || emp.department?.locationName || 'N/A'}</td>
+                    <td>${emp.salary || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ✅ Search filter for employees
+        document.getElementById('search-box').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = allEmployees.filter(emp =>
+                (emp.firstName + ' ' + emp.lastName).toLowerCase().includes(val) ||
+                (emp.email || '').toLowerCase().includes(val) ||
+                (emp.department?.departmentName || '').toLowerCase().includes(val) ||
+                (emp.department?.location?.city || '').toLowerCase().includes(val)
+            );
+            renderTable(filtered);
+        });
+    </script>
+</body>
+</html>

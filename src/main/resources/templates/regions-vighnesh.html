@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Regions & Countries — Vighnesh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1726;
+      --panel:#11243a;
+      --panel-2:#13314f;
+      --text:#e6eef9;
+      --muted:#9fb2c9;
+      --accent:#2ea0ff;
+      --accent-2:#1b7ed6;
+      --chip:#153a60;
+      --shadow:0 10px 24px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+      background:radial-gradient(1200px 700px at 20% -10%, #123055 0%, transparent 60%) , var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+ 
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:14px 18px; background:rgba(9,18,32,.65); backdrop-filter:blur(8px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .brand{display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.3px}
+    .dot{width:8px; height:8px; border-radius:50%; background:var(--accent)}
+    .nav{display:flex; gap:10px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+      background:linear-gradient(180deg, #183658, #122a46); color:var(--text); text-decoration:none;
+      border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow); font-weight:600;
+    }
+    .pill:hover{background:linear-gradient(180deg,#1c3f66,#163454)}
+ 
+    /* Page container */
+    .container{max-width:1100px; margin:24px auto; padding:0 16px}
+ 
+    .title{font-size:26px; font-weight:800; margin:4px 0 4px}
+    .sub{color:var(--muted); margin:0 0 18px}
+ 
+    /* Utility row */
+    .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:18px}
+    .input{
+      flex:1 1 280px; min-width:240px; padding:10px 12px; border-radius:10px;
+      background:#0f2136; color:var(--text); border:1px solid rgba(255,255,255,.06);
+      outline:none;
+    }
+    .btn{cursor:pointer}
+    .btn.secondary{background:#0f2136}
+    .btn{padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); color:var(--text); background:var(--panel)}
+    .btn:hover{background:var(--panel-2)}
+ 
+    /* Region cards */
+    .region{
+      background:linear-gradient(180deg, var(--panel), #0e2034);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin-bottom:14px;
+    }
+    .region-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+    }
+    .region-name{font-weight:800; letter-spacing:.4px}
+    .counter{
+      padding:4px 10px; border-radius:999px; background:#0d2746; color:var(--muted);
+      border:1px solid rgba(255,255,255,.06); font-size:12px;
+    }
+ 
+    /* Countries list as nice chips */
+    .countries{display:flex; gap:10px; flex-wrap:wrap}
+    .chip{
+      display:inline-flex; align-items:center; gap:10px;
+      background:linear-gradient(180deg,#143456,#102b49);
+      border:1px solid rgba(255,255,255,.08);
+      padding:10px 12px; border-radius:14px; color:var(--text);
+      transition:transform .15s ease;
+    }
+    .chip:hover{transform:translateY(-2px)}
+    .view{
+      padding:6px 10px; border-radius:10px; background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      color:#fff; text-decoration:none; border:0; font-weight:700;
+    }
+ 
+    .muted{color:var(--muted)}
+    footer{opacity:.7; font-size:12px; text-align:center; padding:30px 0}
+    .hidden{display:none !important}
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span> HRMS Frontend</div>
+    <nav class="nav">
+      <a class="pill" href="/regions-vighnesh">Regions</a>
+      <a class="pill" href="/employees-vighnesh">Employees</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2 class="title">Regions & Countries</h2>
+    <p class="sub">Choose a country to view employees (city, state, dept, contact).</p>
+
+    <!-- Tools -->
+    <div class="toolbar">
+      <input id="filter" class="input" placeholder="Filter regions or countries (e.g. Europe, Indi)" />
+      <button id="expand" class="btn">Expand all</button>
+      <button id="collapse" class="btn secondary">Collapse all</button>
+    </div>
+
+    <!-- Regions go here -->
+    <div id="regions"></div>
+
+    <footer>© 2025 HRMS</footer>
+  </main>
+
+  <script th:inline="javascript">
+    const API_BASE = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+
+    const regionsEl = document.getElementById('regions');
+    const filterEl  = document.getElementById('filter');
+    const expandBtn = document.getElementById('expand');
+    const collapseBtn = document.getElementById('collapse');
+
+    let data = [];
+
+    function render(list){
+      regionsEl.innerHTML = '';
+      if(!list || list.length === 0){
+        regionsEl.innerHTML = '<p class="muted">No regions found.</p>';
+        return;
+      }
+      list.forEach(r=>{
+        const wrap = document.createElement('section');
+        wrap.className = 'region';
+        const count = (r.countryNames || []).length;
+
+        wrap.innerHTML = `
+          <div class="region-head">
+            <div class="region-name">${r.regionName}</div>
+            <div class="counter">${count} ${count===1?'country':'countries'}</div>
+          </div>
+          <div class="countries">
+            ${
+              count
+                ? r.countryNames.map(c => `
+                  <span class="chip">
+                    <span>${c}</span>
+                    <a class="view" href="/employees-vighnesh?country=${encodeURIComponent(c)}">View</a>
+                  </span>
+                `).join('')
+                : `<span class="muted">No countries.</span>`
+            }
+          </div>
+        `;
+        regionsEl.appendChild(wrap);
+      });
+    }
+
+    function applyFilter(){
+      const q = filterEl.value.trim().toLowerCase();
+      if(!q){ render(data); return; }
+      const filtered = data
+        .map(r => ({
+          regionName: r.regionName,
+          countryNames: (r.countryNames||[]).filter(c => c.toLowerCase().includes(q)),
+          _match: r.regionName.toLowerCase().includes(q)
+        }))
+        .filter(r => r._match || (r.countryNames && r.countryNames.length));
+      render(filtered.map(({_match, ...rest})=>rest));
+    }
+
+    expandBtn.onclick = ()=> document.querySelectorAll('.countries').forEach(e=>e.classList.remove('hidden'));
+    collapseBtn.onclick = ()=> document.querySelectorAll('.countries').forEach(e=>e.classList.add('hidden'));
+    filterEl.oninput = applyFilter;
+
+    fetch(API_BASE + '/vighnesh/regions/with-countries')
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(json => { data = json; render(data); })
+      .catch(async err => {
+        let msg = 'Failed to load regions data.';
+        try { const t = await err.text(); if(t) msg += ' ' + t; } catch(_){}
+        regionsEl.innerHTML = `<p class="muted">${msg}</p>`;
+      });
+  </script>
+</body>
+</html>

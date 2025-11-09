@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Job History - Anubhaw</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        tr.no-data td { color: gray; text-align: center; }
+        tr.error td { color: red; text-align: center; }
+        tr.warning td { color: orange; text-align: center; }
+    </style>
+</head>
+<body>
+<h1 id="employee-name">Job History</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Job Title</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+    </thead>
+    <tbody id="job-history-table-body"></tbody>
+</table>
+
+<script th:inline="javascript">
+    const backendBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+    const params = new URLSearchParams(window.location.search);
+    const employeeId = params.get('employeeId');
+    const tbody = document.getElementById('job-history-table-body');
+    const heading = document.getElementById('employee-name');
+
+    if (employeeId) {
+        const endpoint = `${backendBaseUrl}/anubhaw/job-history/employee/${employeeId}`;
+        console.log("Fetching job history from:", endpoint);
+
+        fetch(endpoint)
+            .then(response => {
+                console.log("Fetch response status:", response.status);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Fetched job history data:", data);
+                tbody.innerHTML = "";
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    heading.textContent = 'Job history not found';
+                    const row = document.createElement('tr');
+                    row.className = 'no-data';
+                    row.innerHTML = `<td colspan="3">No job history available for this employee</td>`;
+                    tbody.appendChild(row);
+                    return;
+                }
+
+                const emp = data[0].employee;
+                if (emp && emp.firstName && emp.lastName) {
+                    heading.textContent = `Job History for ${emp.firstName} ${emp.lastName}`;
+                } else {
+                    heading.textContent = `Job History for Employee ID ${employeeId}`;
+                }
+
+                data.forEach(job => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${job.job?.jobTitle || 'N/A'}</td>
+                        <td>${job.id?.startDate || 'N/A'}</td>
+                        <td>${job.endDate || 'N/A'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading job history:', error);
+                tbody.innerHTML = "";
+                if (error.message.includes('404')) {
+                    heading.textContent = 'Job history not found';
+                    const row = document.createElement('tr');
+                    row.className = 'no-data';
+                    row.innerHTML = `<td colspan="3">No job history available for this employee</td>`;
+                    tbody.appendChild(row);
+                } else {
+                    heading.textContent = 'Error loading job history';
+                    const row = document.createElement('tr');
+                    row.className = 'error';
+                    row.innerHTML = `<td colspan="3">Failed to load job history data</td>`;
+                    tbody.appendChild(row);
+                }
+            });
+    } else {
+        console.warn("No employeeId found in URL");
+        heading.textContent = 'No employee selected';
+        const row = document.createElement('tr');
+        row.className = 'warning';
+        row.innerHTML = `<td colspan="3">Please select an employee from the list</td>`;
+        tbody.appendChild(row);
+    }
+</script>
+</body>
+</html>

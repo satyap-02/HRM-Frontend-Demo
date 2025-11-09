@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Countries and Cities (Swathi)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f4f4f4;
+    }
+    tr:hover {
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Countries and Cities (Swathi)</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Country ID</th>
+        <th>Country Name</th>
+        <th>City Name(s)</th>
+      </tr>
+    </thead>
+    <tbody id="countries-table-body"></tbody>
+  </table>
+
+  <script th:inline="javascript">
+  const apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+
+  fetch(apiBaseUrl + '/swathi/countries/with-cities')
+    .then(res => res.json())
+    .then(data => {
+      console.log("API Response:", data);
+      const tbody = document.getElementById('countries-table-body');
+      tbody.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No data found.</td></tr>';
+        return;
+      }
+
+      // ✅ Loop through each country
+      data.forEach(item => {
+        const cities = item.cities && item.cities.length > 0 ? item.cities : ['N/A'];
+
+        // ✅ Loop through each city separately (each city = new row)
+        cities.forEach(city => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.countryId || 'N/A'}</td>
+            <td>${item.countryName || 'N/A'}</td>
+            <td>${city}</td>
+          `;
+
+          // ✅ On click — navigate to employees by city
+          if (city && city !== 'N/A') {
+            row.onclick = () => {
+              window.location.href = '/swathi/employees-summary?cityName=' + encodeURIComponent(city);
+            };
+          }
+
+          tbody.appendChild(row);
+        });
+      });
+    })
+    .catch(err => {
+      console.error('Error fetching countries:', err);
+      document.getElementById('countries-table-body').innerHTML =
+        '<tr><td colspan="3" style="text-align:center;color:red;">Error loading data.</td></tr>';
+    });
+</script>
+  
+</body>
+</html>

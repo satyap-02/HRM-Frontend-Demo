@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employees - Jaheer</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+<h1>Employee Details</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Hire Date</th>
+        </tr>
+    </thead>
+    <tbody id="employee-table-body"></tbody>
+</table>
+
+<script th:inline="javascript">
+    let apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+
+    fetch(`${apiBaseUrl}/jaheer/employees`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('employee-table-body');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No employees found.</td></tr>';
+            } else {
+                data.forEach(emp => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${emp.employeeId}</td>
+                        <td>
+                            <a href="/jaheer/departments?employeeId=${emp.employeeId}">
+                                ${emp.firstName} ${emp.lastName}
+                            </a>
+                        </td>
+                        <td>${emp.email}</td>
+                        <td>${emp.phoneNumber}</td>
+                        <td>${emp.hireDate}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading employees:', error);
+            document.getElementById('employee-table-body').innerHTML =
+                '<tr><td colspan="5">Error loading data.</td></tr>';
+        });
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Departments - Akhila</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #f4f4f4; color: #333; }
+        tr:hover { background-color: #f9f9f9; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Departments</h1>
+    <table id="department-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Department Name</th>
+                <th>Manager ID</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script th:inline="javascript">
+        const apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+
+        fetch(`${apiBaseUrl}/akhila/departments`)
+
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#department-table tbody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No departments found.</td></tr>';
+                } else {
+                	data.forEach(dept => {
+                	    const row = document.createElement('tr');
+                	    row.innerHTML = `
+                	        <td>${dept.id}</td>
+                	        <td>${dept.departmentName}</td>
+                	        <td>${dept.managerId || 'N/A'}</td>
+                	        <td><a href="employees-ml?deptId=${dept.id}">View Employees</a></td>
+                	    `;
+                	    tbody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading departments:', error);
+                document.querySelector('#department-table tbody').innerHTML =
+                    '<tr><td colspan="4">Error loading departments.</td></tr>';
+            });
+    </script>
+</body>
+</html>

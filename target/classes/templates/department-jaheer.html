@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Department - Jaheer</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+<h1 id="employee-name">Department Details</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Department ID</th>
+            <th>Department Name</th>
+            <th>Manager ID</th>
+        </tr>
+    </thead>
+    <tbody id="department-table-body"></tbody>
+</table>
+
+<script th:inline="javascript">
+    // Dynamic backend base URL
+    const apiBaseUrl = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+
+    const params = new URLSearchParams(window.location.search);
+    const employeeId = params.get('employeeId');
+
+    if (employeeId) {
+        fetch(`${apiBaseUrl}/jaheer/departments/by-employee/${employeeId}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.getElementById('department-table-body');
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.id || 'N/A'}</td>
+                    <td>${data.departmentName || 'N/A'}</td>
+                    <td>${data.managerId || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            })
+            .catch(error => {
+                console.error('Error loading department:', error);
+                document.getElementById('employee-name').textContent = 'Error loading department data';
+                const tbody = document.getElementById('department-table-body');
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="3" style="color: red;">Failed to load department data</td>`;
+                tbody.appendChild(row);
+            });
+    } else {
+        document.getElementById('employee-name').textContent = 'No employee selected';
+        const tbody = document.getElementById('department-table-body');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="3" style="color: orange;">Please select an employee from the list</td>`;
+        tbody.appendChild(row);
+    }
+</script>
+
+</body>
+</html>

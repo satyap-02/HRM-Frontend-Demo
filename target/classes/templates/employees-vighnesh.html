@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Employees — Vighnesh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1726; --panel:#11243a; --panel-2:#0e2034;
+      --text:#e6eef9; --muted:#9fb2c9; --accent:#2ea0ff; --accent-2:#1b7ed6;
+      --shadow:0 10px 24px rgba(0,0,0,.35); --radius:16px;
+    }
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;
+      background:radial-gradient(1200px 700px at 20% -10%, #123055 0%, transparent 60%), var(--bg); color:var(--text)}
+    .topbar{position:sticky; top:0; z-index:50; display:flex; justify-content:space-between; align-items:center;
+      padding:14px 18px; background:rgba(9,18,32,.65); backdrop-filter:blur(8px); border-bottom:1px solid rgba(255,255,255,.06)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+      background:linear-gradient(180deg,#183658,#122a46); color:var(--text); text-decoration:none; border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow); font-weight:600}
+    .pill:hover{background:linear-gradient(180deg,#1c3f66,#163454)}
+    .container{max-width:1100px; margin:24px auto; padding:0 16px}
+    .title{font-size:26px; font-weight:800; margin:6px 0}
+    .card{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+ 
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px}
+    thead th{background:#13314f; color:#d7e6f8; padding:12px; text-align:left; font-weight:700}
+    tbody td{padding:12px; border-top:1px solid rgba(255,255,255,.06)}
+    tbody tr:hover{background:#0f2744}
+    .back{display:inline-block; margin-bottom:14px; color:#9ccfff; text-decoration:none}
+    .back:hover{text-decoration:underline}
+    .muted{color:var(--muted)}
+  </style>
+
+</head>
+<body>
+  <header class="topbar">
+    <a class="pill" href="/regions-vighnesh">← Regions</a>
+    <a class="pill" href="/employees-vighnesh">Employees</a>
+  </header>
+
+  <main class="container">
+    <h2 id="title" class="title">Employees</h2>
+
+    <div id="error" class="card" style="display:none; border-left:3px solid #ef4444; color:#ffd7d7; margin-bottom:14px"></div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Department</th><th>City</th><th>State</th><th>Email</th><th>Phone</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td class="muted" colspan="7">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script th:inline="javascript">
+    const API_BASE = /*[[${apiBaseUrl}]]*/ 'http://localhost:9090';
+    const params = new URLSearchParams(window.location.search);
+    const country = params.get('country') || '';
+    document.getElementById('title').textContent = country ? `Employees for ${country}` : 'Employees';
+
+    const rows = document.getElementById('rows');
+    const errBox = document.getElementById('error');
+
+    if(!country){
+      rows.innerHTML = `<tr><td class="muted" colspan="7">No country selected.</td></tr>`;
+    }else{
+      fetch(`${API_BASE}/vighnesh/employees/country/${encodeURIComponent(country)}/summary`)
+        .then(r=>r.ok ? r.json() : r.json().then(j=>Promise.reject(j)))
+        .then(list=>{
+          if(!Array.isArray(list) || list.length===0){
+            rows.innerHTML = `<tr><td class="muted" colspan="7">No employees found.</td></tr>`;
+            return;
+          }
+          rows.innerHTML = '';
+          list.forEach(e=>{
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${e.employeeId??''}</td>
+              <td>${e.employeeName??''}</td>
+              <td>${e.departmentName??''}</td>
+              <td>${e.city??''}</td>
+              <td>${e.stateProvince??''}</td>
+              <td>${e.email??''}</td>
+              <td>${e.phoneNumber??''}</td>
+            `;
+            rows.appendChild(tr);
+          });
+        })
+        .catch(err=>{
+          const msg = err?.message || 'Failed to load employees.';
+          errBox.style.display = 'block';
+          errBox.textContent = msg;
+          rows.innerHTML = `<tr><td class="muted" colspan="7">No employees to display.</td></tr>`;
+        });
+    }
+  </script>
+</body>
+</html>
